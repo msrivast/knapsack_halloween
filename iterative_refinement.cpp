@@ -6,24 +6,20 @@ int T = 100;
 const int num = 16;
 int weights[num], values[num];
 
-vector<pair<float,int>> bags[3], bags_copy[3];
-
 random_device rd; // obtain a random number from hardware
 mt19937 gen(rd()); // seed the generator
 uniform_int_distribution<> distr(0, 2); // define the range
 
-int bagweights[3], bagweights_copy[3];
-// int best;
 
-void insert_sorted(vector<pair<float,int>> &v, pair<float,int> elem){
-    v.insert( upper_bound( v.begin(), v.end(), elem ), elem );
-}
+// void insert_sorted(vector<pair<float,int>> &v, pair<float,int> elem){
+//     v.insert( upper_bound( v.begin(), v.end(), elem ), elem );
+// }
 
 struct stats{
-    int total=0,bagweights[3] = {0,0,0};
+    int total=0,bagweights[3] = {0};
 } best;
 
-stats fit_candies_to_bags(){
+stats fit_candies_to_bags(vector<pair<float,int>> *bags, int *bagweights){
     // int sum = 0;
     stats current;
     vector<pair<float,int>> removed_candies;
@@ -59,7 +55,7 @@ stats fit_candies_to_bags(){
     return current;
 }
 
-void refresh_global_variables(){
+void refresh_variables(vector<pair<float,int>> *bags, int *bagweights, vector<pair<float,int>> *bags_copy, int *bagweights_copy){
     for (int i = 0; i < 3; i++){
         bags[i] = bags_copy[i];
         bagweights[i] = bagweights_copy[i];
@@ -74,31 +70,30 @@ int main(){
 
     for (int t = 0; t < T; t++){
         // Lucky draw: Randomly distribute candy among the three bags
-        redo: for(i = 0; i < 3; i++){
-            bags_copy[i].clear();
-            bagweights_copy[i] = 0;
-        }
+redo:   vector<pair<float,int>> bags[3],bags_copy[3];
+        int bagweights[3] = {0}, bagweights_copy[3] = {0};
+                
         for(i = 0; i < num; i++){
-                int chosen = distr(gen);
-                // bags[chosen].push_back(make_pair(weights[i],i));
-                bags[chosen].push_back(make_pair((float)values[i]/weights[i],i));
-                bags_copy[chosen].push_back(make_pair((float)values[i]/weights[i],i));
-                bagweights[chosen] += weights[i];
-                bagweights_copy[chosen] += weights[i];
-                }
-                // for (int i=0; i < 3; i++) cout << "bag #" << i+1 << ": " << bagweights[i] << "\n";
-        for(i = 0; i < 3; i++)
-            if(bagweights[i]<2000){
-                cout << "hmmm...redoing...\n";
-                goto redo;
-            }
+            int chosen = distr(gen);
+            bags[chosen].push_back(make_pair((float)values[i]/weights[i],i));
+            bagweights[chosen] += weights[i];
+        }
+        // for (int i=0; i < 3; i++) cout << "bag #" << i+1 << ": " << bagweights[i] << "\n";
         
-        best = fit_candies_to_bags();
+        for(i = 0; i < 3; i++){
+            // if(bagweights[i]<2000){
+            //     // cout << "hmmm...redoing...\n";
+            //     goto redo;
+            // }
+            bags_copy[i] = bags[i]; // vector copy
+            bagweights_copy[i] = bagweights[i]; // array copy
+        }
+        best = fit_candies_to_bags(bags, bagweights);
         // cout << "At the start: " << best.total << "\n";
         // for (int i=0; i < 3; i++) cout << "bag #" << i+1 << ": " << best.bagweights[i] << "\n";
 
         
-        refresh_global_variables();
+        refresh_variables(bags, bagweights, bags_copy, bagweights_copy);
 
         // send candy to a bag
         for(int j = 0; j<3; j++){
@@ -115,13 +110,12 @@ int main(){
                     bags[j].erase(bags[j].begin() + i);
                     bagweights[j] -= weights[candy_num];
 
-                    stats score = fit_candies_to_bags();
+                    stats score = fit_candies_to_bags(bags, bagweights);
                     if  (score.total>best.total) best = score;
 
-                    refresh_global_variables();
-
-                    i++;
+                    refresh_variables(bags, bagweights, bags_copy, bagweights_copy);
                 }
+                i++;
             }
         }
         // cout << "At the end: " << best.total << "\n";
