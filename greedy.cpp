@@ -36,7 +36,7 @@ int main(){
     }
     
     int sum = 0;
-    for (int i; i < 3; i++) cout << "bag #" << i+1 << ": " << bagweights[i] << "\n";
+    for (int i=0; i < 3; i++) cout << "bag #" << i+1 << ": " << bagweights[i] << "\n";
 
     for(auto bag : bags)
         for(int i : bag)
