@@ -18,9 +18,11 @@ void read_file(string filename, vector<int> &weights, vector<int> &values){
     }
 }
 
-int solve(int current_value, int i){
+int solve(int current_value, int i, int max_remaining_value){
     // base case
     if (i == num) return current_value;
+    if (current_value+max_remaining_value<=best) return 0;
+
     
     int start=0;            // pruning
     if (i==0) start=2;
@@ -30,7 +32,7 @@ int solve(int current_value, int i){
         int leaf_total = 0;
         if (j!=3 && weights[i] <= 2000 - bag_weights[j]){
             bag_weights[j] += weights[i];
-            leaf_total = solve(current_value +  values[i], i+1);
+            leaf_total = solve(current_value +  values[i], i+1, max_remaining_value-values[i]);
             if (leaf_total>best) {
                 best = leaf_total;
                 for(int k = 0; k<3; k++) best_bag_weights[k] = bag_weights[k];
@@ -38,7 +40,7 @@ int solve(int current_value, int i){
             bag_weights[j] -= weights[i];
         }
         if(j==3){
-            leaf_total = solve(current_value, i+1);
+            leaf_total = solve(current_value, i+1,max_remaining_value-values[i]);
             if (leaf_total>best) {
                 best = leaf_total;
                 for(int k = 0; k<3; k++) best_bag_weights[k] = bag_weights[k];
@@ -54,8 +56,6 @@ int main(){
 
     // for (int i = 0; i < weights.size(); i++)
     //     cout << weights[i] << " " << values[i] << "\n";
-
-    solve(0,0);
     int w_sum = 0, v_sum = 0;
 
     for (int i=0; i<num; i++){
@@ -63,6 +63,9 @@ int main(){
         v_sum += values[i]; 
     }
     cout << w_sum << " " << v_sum << "\n";
+    
+    solve(0,0, v_sum);
+
     cout << best << "\n";
     for (int i=0; i<3; i++)
         cout << best_bag_weights[i] << " ";
