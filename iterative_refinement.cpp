@@ -119,7 +119,8 @@ redo:   vector<pair<float,int>> bags[3],bags_copy[3];
             }
         }
         // cout << "At the end: " << best.total << "\n";
-        cout << best.total << "\n";
+        if (best.total > 10591)
+            cout << best.total << "\n";
         // for (int i=0; i < 3; i++) cout << "bag #" << i+1 << ": " << best.bagweights[i] << "\n";
 
     }
